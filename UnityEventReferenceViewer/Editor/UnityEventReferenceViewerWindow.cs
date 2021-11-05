@@ -21,6 +21,7 @@ namespace UnityEventReferenceViewer
 
         private bool lastHideNoEventAssignment;
         private bool lastHideNullEventAssignment;
+        private bool lastHideUnityEngineEventAssignment;
 
         [MenuItem("Window/UnityEvent Reference Viewer")]
         public static void OpenWindow()
@@ -78,7 +79,7 @@ namespace UnityEventReferenceViewer
             if (newString != searchString ||
                 UnityEventReferenceFinder.HideNoEventAssignment != lastHideNoEventAssignment ||
                 UnityEventReferenceFinder.HideNullEventAssignment != lastHideNullEventAssignment ||
-                UnityEventReferenceFinder.HideUnityEngineEventAssignment != HideUnityEngineEventAssignment)
+                UnityEventReferenceFinder.HideUnityEngineEventAssignment != lastHideUnityEngineEventAssignment)
             {
                 searchString = newString;
 
@@ -91,7 +92,7 @@ namespace UnityEventReferenceViewer
 
                     lastHideNoEventAssignment = UnityEventReferenceFinder.HideNoEventAssignment;
                     lastHideNullEventAssignment = UnityEventReferenceFinder.HideNullEventAssignment;
-                    HideUnityEngineEventAssignment = UnityEventReferenceFinder.HideUnityEngineEventAssignment;
+                    lastHideUnityEngineEventAssignment = UnityEventReferenceFinder.HideUnityEngineEventAssignment;
 
                     FindDependencies();
                 }
