@@ -8,8 +8,6 @@ namespace UnityEventReferenceViewer
 {
     public class UnityEventReferenceViewerWindow : EditorWindow
     {
-        #region Fields
-
         private int mainSpacing = 20;
         private int tabulation = 30;
         private float leftColoumnRelativeWidth = 0.6f;
@@ -20,18 +18,17 @@ namespace UnityEventReferenceViewer
         private Rect drawableRect;
 
         Vector2 scroll = Vector2.zero;
-        #endregion
 
-        #region Properties
-
-        #endregion
+        private bool lastHideNoEventAssignment;
+        private bool lastHideNullEventAssignment;
 
         [MenuItem("Window/UnityEvent Reference Viewer")]
         public static void OpenWindow()
         {
-            UnityEventReferenceViewerWindow window = GetWindow<UnityEventReferenceViewerWindow>();
+            UnityEventReferenceViewerWindow window = CreateWindow<UnityEventReferenceViewerWindow>();
             window.titleContent = new GUIContent("UnityEvent Reference Viewer");
             window.minSize = new Vector2(250, 100);
+            window.Show();
         }
 
         [DidReloadScripts]
@@ -65,10 +62,19 @@ namespace UnityEventReferenceViewer
             var drawnVertically = 0;
             drawableRect = GetDrawableRect();
 
-            EditorGUI.LabelField(new Rect(drawableRect.position, new Vector2(100f, 16f)), "Search method");
-            var newString = EditorGUI.TextField(new Rect(drawableRect.position + Vector2.right * 100f, new Vector2(drawableRect.width - 100, 16f)), searchString);
+            GUILayout.BeginHorizontal();
 
-            if (newString != searchString)
+            UnityEventReferenceFinder.HideNoEventAssignment = GUILayout.Toggle(UnityEventReferenceFinder.HideNoEventAssignment, "HideNoEventAssignment");
+            UnityEventReferenceFinder.HideNullEventAssignment = GUILayout.Toggle(UnityEventReferenceFinder.HideNullEventAssignment, "HideNullEventAssignment");
+            UnityEventReferenceFinder.HideUnityEngineEventAssignment = GUILayout.Toggle(UnityEventReferenceFinder.HideUnityEngineEventAssignment, "HideUnityEngineEventAssignment");
+
+            EditorGUI.LabelField(new Rect(drawableRect.position, new Vector2(150f, 16f)), "Search dependences");
+            var newString = EditorGUI.TextField(new Rect(drawableRect.position + Vector2.right * 150f, new Vector2(drawableRect.width - 150, 16f)), searchString);
+            GUILayout.EndHorizontal();
+
+            if (newString != searchString ||
+                UnityEventReferenceFinder.HideNoEventAssignment != lastHideNoEventAssignment ||
+                UnityEventReferenceFinder.HideNullEventAssignment != lastHideNullEventAssignment)
             {
                 searchString = newString;
 
@@ -78,13 +84,24 @@ namespace UnityEventReferenceViewer
                 }
                 else
                 {
+
+                    lastHideNoEventAssignment = UnityEventReferenceFinder.HideNoEventAssignment;
+                    lastHideNullEventAssignment = UnityEventReferenceFinder.HideNullEventAssignment;
+
                     FindDependencies();
                 }
             }
 
             if (dependencies != null)
             {
-                GUILayout.Space(80);
+                GUILayout.Space(50);
+                GUILayout.BeginHorizontal();
+
+                GUILayout.Label($"Entries found: {dependencies.Count}");
+
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(30);
                 scroll = GUILayout.BeginScrollView(scroll, false, false);
 
                 int i = 0;
@@ -109,6 +126,7 @@ namespace UnityEventReferenceViewer
         {
             float width = drawableRect.width * leftColoumnRelativeWidth;
 
+            //EditorGUI.ObjectField(new Rect(position, new Vector2(width - tabulation, 16f)), dependency.OwnerTransform, typeof(Transform), true);
             EditorGUI.ObjectField(new Rect(position, new Vector2(width - tabulation, 16f)), dependency.Owner, typeof(MonoBehaviour), true);
 
             for (int i = 0; i < dependency.Listeners.Count; i++)
