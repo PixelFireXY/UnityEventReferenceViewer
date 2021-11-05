@@ -77,7 +77,8 @@ namespace UnityEventReferenceViewer
             // Search elaboration
             if (newString != searchString ||
                 UnityEventReferenceFinder.HideNoEventAssignment != lastHideNoEventAssignment ||
-                UnityEventReferenceFinder.HideNullEventAssignment != lastHideNullEventAssignment)
+                UnityEventReferenceFinder.HideNullEventAssignment != lastHideNullEventAssignment ||
+                UnityEventReferenceFinder.HideUnityEngineEventAssignment != HideUnityEngineEventAssignment)
             {
                 searchString = newString;
 
@@ -90,6 +91,7 @@ namespace UnityEventReferenceViewer
 
                     lastHideNoEventAssignment = UnityEventReferenceFinder.HideNoEventAssignment;
                     lastHideNullEventAssignment = UnityEventReferenceFinder.HideNullEventAssignment;
+                    HideUnityEngineEventAssignment = UnityEventReferenceFinder.HideUnityEngineEventAssignment;
 
                     FindDependencies();
                 }
