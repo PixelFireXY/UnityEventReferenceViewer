@@ -64,14 +64,17 @@ namespace UnityEventReferenceViewer
 
             GUILayout.BeginHorizontal();
 
+            // Show the toggles
             UnityEventReferenceFinder.HideNoEventAssignment = GUILayout.Toggle(UnityEventReferenceFinder.HideNoEventAssignment, "HideNoEventAssignment");
             UnityEventReferenceFinder.HideNullEventAssignment = GUILayout.Toggle(UnityEventReferenceFinder.HideNullEventAssignment, "HideNullEventAssignment");
             UnityEventReferenceFinder.HideUnityEngineEventAssignment = GUILayout.Toggle(UnityEventReferenceFinder.HideUnityEngineEventAssignment, "HideUnityEngineEventAssignment");
 
+            // Search bar
             EditorGUI.LabelField(new Rect(drawableRect.position, new Vector2(150f, 16f)), "Search dependences");
             var newString = EditorGUI.TextField(new Rect(drawableRect.position + Vector2.right * 150f, new Vector2(drawableRect.width - 150, 16f)), searchString);
             GUILayout.EndHorizontal();
 
+            // Search elaboration
             if (newString != searchString ||
                 UnityEventReferenceFinder.HideNoEventAssignment != lastHideNoEventAssignment ||
                 UnityEventReferenceFinder.HideNullEventAssignment != lastHideNullEventAssignment)
@@ -92,6 +95,7 @@ namespace UnityEventReferenceViewer
                 }
             }
 
+            // Data list showed to the user
             if (dependencies != null)
             {
                 GUILayout.Space(50);
@@ -126,7 +130,7 @@ namespace UnityEventReferenceViewer
         {
             float width = drawableRect.width * leftColoumnRelativeWidth;
 
-            //EditorGUI.ObjectField(new Rect(position, new Vector2(width - tabulation, 16f)), dependency.OwnerTransform, typeof(Transform), true);
+            //EditorGUI.ObjectField(new Rect(position, new Vector2(width - tabulation, 16f)), dependency.OwnerTransform, typeof(Transform), true);      // You can use this instead if you want the transform of the owner
             EditorGUI.ObjectField(new Rect(position, new Vector2(width - tabulation, 16f)), dependency.Owner, typeof(MonoBehaviour), true);
 
             for (int i = 0; i < dependency.Listeners.Count; i++)
@@ -139,6 +143,10 @@ namespace UnityEventReferenceViewer
             }
         }
 
+        /// <summary>
+        /// Filter the references found.
+        /// </summary>
+        /// <param name="methodName">The keyword of the reference.</param>
         private static void FindDependencies(string methodName)
         {
             var depens = UnityEventReferenceFinder.FindAllUnityEventsReferences();

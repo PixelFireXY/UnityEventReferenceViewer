@@ -32,31 +32,30 @@ namespace UnityEventReferenceViewer
         /// </summary>
         public static bool HideUnityEngineEventAssignment { get; set; } = true;
 
-        [ContextMenu("FindReferences")]
-        public void FindReferences()
-        {
-            FindAllUnityEventsReferences();
-        }
-
         public static List<EventReferenceInfo> FindAllUnityEventsReferences()
         {
-            var behaviours = FindAssetsByMonoBehaviour();
+            // Find all prefabs
+            List<MonoBehaviour> behaviours = FindAssetsByMonoBehaviour();
 
             var monobehaviourList = new List<MonoBehaviour>();
             var unityEventList = new List<UnityEventBase>();
 
             foreach (var b in behaviours)
             {
-                if (b == null)
+                if (b == null)      // Prevent errors
                     continue;
 
+                // Filter by UnityEvents
                 TypeInfo info = b.GetType().GetTypeInfo();
                 List<FieldInfo> evnts = info.DeclaredFields.Where(f => f.FieldType.IsSubclassOf(typeof(UnityEventBase))).ToList();
+
                 foreach (var e in evnts)
                 {
                     var eventField = e.GetValue(b) as UnityEventBase;
 
                     var eventCount = eventField.GetPersistentEventCount();
+
+                    // Prevent to load the UnityEvents with no events in list
                     if (HideNoEventAssignment &&
                         eventField.GetPersistentEventCount() == 0)
                         continue;
@@ -71,22 +70,20 @@ namespace UnityEventReferenceViewer
             for (int i = 0; i < monobehaviourList.Count; i++)
             {
                 var currUnityEvent = unityEventList[i];
-
                 int count = currUnityEvent.GetPersistentEventCount();
-
-                if (monobehaviourList[i].name.Contains("OnButton"))
-                    Debug.Log($"");
 
                 var info = new EventReferenceInfo();
                 info.Owner = monobehaviourList[i];
                 info.OwnerTransform = monobehaviourList[i].transform;
 
+                // Used to decide if add the element or not to the list
                 bool hasMoreThanOneElementValid = !HideNullEventAssignment || !HideNoEventAssignment;
 
                 for (int ii = 0; ii < count; ii++)
                 {
                     var obj = currUnityEvent.GetPersistentTarget(ii);
 
+                    // Hide UnityEngine components
                     if (HideUnityEngineEventAssignment)
                     {
                         if (obj != null &&
@@ -96,6 +93,7 @@ namespace UnityEventReferenceViewer
                         }
                     }
 
+                    // Hide UnityEvents with events in list but with null reference
                     if (HideNullEventAssignment)
                     {
                         if (obj != null)
@@ -114,6 +112,7 @@ namespace UnityEventReferenceViewer
                     info.MethodNames.Add($"{obj.GetType().Name}.{method}");
                 }
 
+                // Add the element elaborated to the list
                 if (hasMoreThanOneElementValid)
                     infos.Add(info);
             }
@@ -121,12 +120,16 @@ namespace UnityEventReferenceViewer
             return infos;
         }
 
+        /// <summary>
+        /// Use this if you want only to find the scripts.
+        /// </summary>
+        /// <returns>The list of scripts found in the project.</returns>
         public static List<MonoScript> FindAssetsByMonoScript()
         {
             List<MonoScript> assets = new List<MonoScript>();
 
             string[] guids = AssetDatabase.FindAssets(string.Format("t:script"));
-            //string[] guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(T).ToString().Replace("UnityEngine.", "")));
+
             for (int i = 0; i < guids.Length; i++)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
@@ -139,6 +142,10 @@ namespace UnityEventReferenceViewer
             return assets;
         }
 
+        /// <summary>
+        /// Find all prefabs with a UnityEvent on it.
+        /// </summary>
+        /// <returns>The list of prefabs found in the project.</returns>
         public static List<MonoBehaviour> FindAssetsByMonoBehaviour()
         {
             List<MonoBehaviour> assets = new List<MonoBehaviour>();
@@ -151,8 +158,9 @@ namespace UnityEventReferenceViewer
                 var assetMono = (MonoBehaviour)AssetDatabase.LoadAssetAtPath(assetPath, typeof(MonoBehaviour));
                 if (assetMono != null)
                 {
+                    // Make sure to be recursive and not only for the parent prefab
                     var monoChildren = assetMono.GetComponentsInChildren<MonoBehaviour>(true);
-                    //assets.Add(assetMono);
+
                     assets.AddRange(monoChildren);
                 }
             }
